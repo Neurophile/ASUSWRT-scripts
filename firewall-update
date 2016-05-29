@@ -25,11 +25,9 @@ mips)
 esac
 
 # Get lists
-get_update () {
-        mkdir -p $path
-        wget -q --show-progress --no-check-certificate -i $path/malware-filter.list -O $path/malware-list.pre
-        cat $path/malware-list.pre | grep -oE "$regexp" | sort -u >$path/malware-updates.txt
- }
+mkdir -p $path
+wget -q --show-progress --no-check-certificate -i $path/malware-filter.list -O $path/malware-list.pre
+cat $path/malware-list.pre | grep -oE "$regexp" | sort -u >$path/malware-updates.txt
 
 ipset -N malware-update iphash
 for IP in $(cat $path/malware-updates.txt)
@@ -40,6 +38,6 @@ done
 nice ipset --swap malware-update malware-filter && \
 nice ipset --destroy malware-update
 
-mv malware-updates.txt malware-filter.txt
+mv $path/malware-updates.txt $path/malware-filter.txt
 
 exit $?

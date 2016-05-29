@@ -1,0 +1,38 @@
+#!/bin/sh
+# SET CONFIG
+path=/jffs/filters
+#path for malware filter files
+# END CONFIG
+
+# SET VARIBLES
+regexp=`echo "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+# END VARIBLES
+
+# Loading ipset modules
+lsmod | grep "ipt_set" > /dev/null 2>&1 || \
+    for module in ip_set ip_set_iptreemap ipt_set; do
+        insmod $module
+    done
+
+# Different routers got different iptables syntax
+case $(uname -m) in
+armv7l)
+    MATCH_SET='--match-set'
+;;
+mips)
+    MATCH_SET='--set'
+;;
+esac
+
+# Create the malware-filter (primary) if does not exists
+if [ "$(ipset --swap malware-filter malware-filter 2>&1 | grep 'Unknown set')" != "" ]; then
+    ipset -N malware-filter iphash
+    for IP in $(cat $path/malware-filter.txt)
+    do
+        ipset -A malware-filter $IP
+    done
+
+fi
+[ -z "$(iptables-save | grep malware-filter)" ] && iptables -I FORWARD -m set $MATCH_SET malware-filter dst -j DROP
+
+exit $?

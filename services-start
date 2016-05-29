@@ -1,0 +1,3 @@
+#!/bin/sh
+cru a malware-update "0 3 * * * /jffs/scripts/firewall-update"
+

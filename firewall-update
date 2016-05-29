@@ -1,0 +1,45 @@
+#!/bin/sh
+# SET CONFIG
+path=/jffs/filters
+#path for malware filter files
+# END CONFIG
+
+# SET VARIBLES
+regexp=`echo "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+# END VARIBLES
+
+# Loading ipset modules
+lsmod | grep "ipt_set" > /dev/null 2>&1 || \
+    for module in ip_set ip_set_iptreemap ipt_set; do
+        insmod $module
+    done
+
+# Different routers got different iptables syntax
+case $(uname -m) in
+armv7l)
+    MATCH_SET='--match-set'
+;;
+mips)
+    MATCH_SET='--set'
+;;
+esac
+
+# Get lists
+get_update () {
+        mkdir -p $path
+        wget -q --show-progress --no-check-certificate -i $path/malware-filter.list -O $path/malware-list.pre
+        cat $path/malware-list.pre | grep -oE "$regexp" | sort -u >$path/malware-updates.txt
+ }
+
+ipset -N malware-update iphash
+for IP in $(cat $path/malware-updates.txt)
+do
+  ipset -A malware-update $IP
+done
+
+nice ipset --swap malware-update malware-filter && \
+nice ipset --destroy malware-update
+
+mv malware-updates.txt malware-filter.txt
+
+exit $?

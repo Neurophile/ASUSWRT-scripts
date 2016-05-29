@@ -1,4 +1,7 @@
 #!/bin/sh
+
+# Original script by swetoast. Updates by Neurophile.
+
 # SET CONFIG
 path=/jffs/filters
 #path for malware filter files

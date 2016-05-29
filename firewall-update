@@ -29,7 +29,7 @@ esac
 
 # Get lists
 mkdir -p $path
-wget -q --show-progress --no-check-certificate -i $path/malware-filter.list -O $path/malware-list.pre
+wget -q --show-progress -i $path/malware-filter.list -O $path/malware-list.pre
 cat $path/malware-list.pre | grep -oE "$regexp" | sort -u >$path/malware-updates.txt
 
 ipset -N malware-update iphash
